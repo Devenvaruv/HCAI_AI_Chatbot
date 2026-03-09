@@ -11,19 +11,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-  res.send('Server is running');
+    res.send('Server is running');
 });
 
 app.post('/chat', (req, res) => {
     const userMessage = req.body['user-input'];
-    const retrivalMethod = req.body['retrieval-method'];
+    const retrievalMethod = req.body['retrieval-method'];
 
     console.log('User Message:', userMessage);
-    console.log('Retrieval Method:', retrivalMethod);
+    console.log('Retrieval Method:', retrievalMethod);
 
-    res.send({ responseRecieved: { userMessage}, responseToUser: "Message Received!"})
+    res.send({ responseReceived: { userMessage }, responseToUser: "Message Received!" })
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+    console.log(`Server is running on port ${port}`);
 });
