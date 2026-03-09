@@ -11,12 +11,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.send('Server is running');
+    res.sendFile(path.join(__dirname, 'public', 'chat.html'));
 });
 
 app.post('/chat', (req, res) => {
-    const userMessage = req.body['user-input'];
-    const retrievalMethod = req.body['retrieval-method'];
+    const userMessage = req.body.userMessage;
+    const retrievalMethod = req.body.retrievalMethod;
 
     console.log('User Message:', userMessage);
     console.log('Retrieval Method:', retrievalMethod);
