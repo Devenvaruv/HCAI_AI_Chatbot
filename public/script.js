@@ -3,6 +3,7 @@ const sendBtn = document.getElementById('send-btn')
 const messagesContainer = document.getElementById('messages')
 const retrievalMethod = document.getElementById('retrieval-method')
 const uploadBtn = document.getElementById('upload-btn')
+const fileInput = document.getElementById('file-input')
 
 /**
  * Create a message bubble & append it to the Chat Container
@@ -22,6 +23,14 @@ const createChatMessage = (message, role) => {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
+function logEvent(type, element) {
+    fetch('/log-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participantID: 'user123', eventType: type, elementName: element, timestamp: new Date() })
+    });
+}
+
 const sendMessage = async () => {
     // Display message & clear input field
     let userMessage = inputField.value.trim();
@@ -39,14 +48,16 @@ const sendMessage = async () => {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                "participantID": "user123",
                 "userMessage": userMessage,
                 "retrievalMethod": retrievalMethod.value
             }),
         })
         if (resp.ok) {
             let data = await resp.json();
-            createChatMessage('Message received', 'system')
-            console.log('Server responded: ', JSON.stringify(data));
+            // console.log("Data from server: ", data);
+            createChatMessage(data.botResponse, 'system')
+            // console.log('Server responded: ', JSON.stringify(data));
         } else {
             console.error("Failed to fetch response from server")
         }
@@ -55,10 +66,15 @@ const sendMessage = async () => {
     }
 }
 
-sendBtn.addEventListener('click', sendMessage);
+// sendBtn.addEventListener('click', sendMessage);
+sendBtn.addEventListener('click', function () {
+    logEvent('click', 'SendButton');
+    sendMessage();
+});
 
 inputField.addEventListener('keydown', function (event) {
     if (event.key == 'Enter') {
+        logEvent('click', 'EnterButton');
         sendMessage();
     }
 });
@@ -66,9 +82,17 @@ inputField.addEventListener('keydown', function (event) {
 retrievalMethod.addEventListener('change', function () {
     const selectedMethod = retrievalMethod.value;
     console.log("Retrieval method: " + selectedMethod);
+    logEvent('change', 'RetrievalMethodDropdown');
 });
 
 uploadBtn.addEventListener('click', function () {
     const file = document.getElementById('file-input').files[0];
     console.log("Selected file: " + file.name);
+    logEvent('click', 'UploadButton');
+});
+
+fileInput.addEventListener('click', function () {
+    const file = document.getElementById('file-input');
+    console.log("Button Selected");
+    logEvent('click', 'FileInput');
 });
