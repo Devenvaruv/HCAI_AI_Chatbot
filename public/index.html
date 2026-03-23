@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HCAI Case Study</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="landing-page">
+    <main class="landing-shell">
+        <section class="landing-hero">
+            <p class="landing-eyebrow">Human-Centered AI Study</p>
+            <h1>HCAI Case Study</h1>
+            <p class="landing-copy">
+                This chatbot is the base condition for our case study. Enter your participant ID to begin the task and
+                access the chat interface.
+            </p>
+            <ul class="landing-notes">
+                <li>Your participant ID is used to associate your chat interactions and event logs.</li>
+                <li>Use the same ID if you need to return to your assigned chat session.</li>
+            </ul>
+        </section>
+
+        <section class="participant-card">
+            <h2 class="participant-title">Participant Check-In</h2>
+            <p class="participant-copy">Enter the ID provided by your research team before proceeding.</p>
+
+            <label class="section-label" for="participant-id">Participant ID</label>
+            <input type="text" name="participant-id" id="participant-id" autocomplete="off"
+                placeholder="Enter participant ID">
+
+            <button type="button" id="proceed-btn">Proceed to Chat</button>
+        </section>
+    </main>
+
+    <script src="index.js"></script>
+</body>
+
+</html>

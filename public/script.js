@@ -1,3 +1,12 @@
+// Check if participant ID is set, if not redirect to index.html
+const participantID = localStorage.getItem('participantID')
+if (!participantID) {
+    alert('Please enter your participant ID first.');
+    window.location.href = '/';
+}
+
+console.log(`participantID: ${participantID}`)
+
 const inputField = document.getElementById('user-input')
 const sendBtn = document.getElementById('send-btn')
 const messagesContainer = document.getElementById('messages')
@@ -27,7 +36,12 @@ function logEvent(type, element) {
     fetch('/log-event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ participantID: 'user123', eventType: type, elementName: element, timestamp: new Date() })
+        body: JSON.stringify({
+            participantID: participantID,
+            eventType: type,
+            elementName: element,
+            timestamp: new Date()
+        })
     });
 }
 
@@ -48,16 +62,14 @@ const sendMessage = async () => {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                "participantID": "user123",
+                "participantID": participantID,
                 "userMessage": userMessage,
                 "retrievalMethod": retrievalMethod.value
             }),
         })
         if (resp.ok) {
             let data = await resp.json();
-            // console.log("Data from server: ", data);
             createChatMessage(data.botResponse, 'system')
-            // console.log('Server responded: ', JSON.stringify(data));
         } else {
             console.error("Failed to fetch response from server")
         }
@@ -66,7 +78,32 @@ const sendMessage = async () => {
     }
 }
 
-// sendBtn.addEventListener('click', sendMessage);
+/**
+ * Load chat history for this participant
+ */
+const loadChatHistory = async () => {
+    try {
+        // encodeURIComponent handles participantID that looks like part of URL e.g. 123?x=1
+        const resp = await fetch(`/chat-history/${encodeURIComponent(participantID)}`);
+        if (!resp.ok) {
+            console.error('Failed to load chat history');
+            return;
+        }
+
+        const history = await resp.json();
+
+        history.forEach((interaction) => {
+            createChatMessage(interaction.userInput, 'user');
+            createChatMessage(interaction.botResponse, 'system');
+        });
+    } catch (err) {
+        console.error('Error loading chat history:', err);
+    }
+}
+
+// Load chat history for this participant after HTML is parsed
+document.addEventListener('DOMContentLoaded', loadChatHistory)
+
 sendBtn.addEventListener('click', function () {
     logEvent('click', 'SendButton');
     sendMessage();
