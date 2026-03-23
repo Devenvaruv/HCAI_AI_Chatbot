@@ -85,7 +85,7 @@ app.post('/chat', async (req, res) => {
     }
     });
 
-    app.post('/log-event', async (req, res) => {
+app.post('/log-event', async (req, res) => {
     const { participantID, eventType, elementName, timestamp } = req.body;
 
     try {
@@ -104,6 +104,36 @@ app.post('/chat', async (req, res) => {
     }
 });
 
+app.post('/history', async (req, res) => {
+    const participantID = req.body.participantID;
+    
+    //res.status(200).send("placeholder: " + participantID);
+
+    try {
+        const data = await Interaction.find({ participantID })
+            .sort({ timestamp: 1});
+
+        const history = [];
+
+        data.forEach((row) => {
+            history.push({
+                message: row.userInput,
+                role: 'user'
+            });
+
+            history.push({
+                message: row.botResponse,
+                role: 'system'
+            })
+        })
+
+        res.status(200).json(history);
+
+    } catch(err) {
+        res.status(500).send(err);
+        console.log(err);
+    } 
+})
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

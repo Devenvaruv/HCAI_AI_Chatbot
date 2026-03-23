@@ -4,6 +4,7 @@ const messagesContainer = document.getElementById('messages')
 const retrievalMethod = document.getElementById('retrieval-method')
 const uploadBtn = document.getElementById('upload-btn')
 const fileInput = document.getElementById('file-input')
+const participantId = localStorage.getItem("participantId")
 
 /**
  * Create a message bubble & append it to the Chat Container
@@ -27,7 +28,7 @@ function logEvent(type, element) {
     fetch('/log-event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ participantID: 'user123', eventType: type, elementName: element, timestamp: new Date() })
+        body: JSON.stringify({ participantID: participantId, eventType: type, elementName: element, timestamp: new Date() })
     });
 }
 
@@ -48,7 +49,7 @@ const sendMessage = async () => {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                "participantID": "user123",
+                "participantID": participantId,
                 "userMessage": userMessage,
                 "retrievalMethod": retrievalMethod.value
             }),
@@ -66,6 +67,29 @@ const sendMessage = async () => {
     }
 }
 
+const loadHistory = async () => {
+    try {
+        const resp = await fetch("/history", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                "participantID": participantId
+            }),
+        })
+        if (resp.ok) {
+            let data = await resp.json();
+            
+            data.forEach((msg) => {
+                createChatMessage(msg.message, msg.role);
+            })
+            console.log('Server responded: ', JSON.stringify(data));
+        } else {
+            console.error("Failed to fetch response from server")
+        }
+    } catch (err) {
+        console.error("Fetch response from server: ", err)
+    }
+}
 // sendBtn.addEventListener('click', sendMessage);
 sendBtn.addEventListener('click', function () {
     logEvent('click', 'SendButton');
@@ -95,4 +119,16 @@ fileInput.addEventListener('click', function () {
     const file = document.getElementById('file-input');
     console.log("Button Selected");
     logEvent('click', 'FileInput');
+});
+
+function startChat() {
+    const id = document.getElementById("participantId").value;
+
+    localStorage.setItem("participantId", id);
+
+    window.location.href = "chat.html";
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+    loadHistory();
 });
