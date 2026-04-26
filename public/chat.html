@@ -23,36 +23,27 @@
 
       <div class="sidebar-divider"></div>
 
-      <!-- Document Management -->
-      <div class="sidebar-section-header">DOCUMENT MANAGEMENT</div>
-      <div class="upload-section">
-        <p class="mini-label">UPLOAD DOCUMENT</p>
-        <div class="file-input-row">
-          <label class="choose-file-label">
-            Choose File
-            <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.md" />
-          </label>
-          <span id="file-name-display" class="file-name-text">No file chosen</span>
-        </div>
-        <button type="button" id="upload-btn" class="btn-upload">Upload</button>
-      </div>
-
-      <p class="mini-label" style="margin: 10px 8px 4px;">UPLOADED DOCUMENTS</p>
-      <div id="uploaded-docs">
-        <p id="empty-msg">No documents uploaded yet</p>
-      </div>
-
+      <!-- Spacer pushes docs + retrieval to bottom -->
       <div class="sidebar-spacer"></div>
 
-      <!-- Retrieval Method pinned to bottom -->
-      <div class="sidebar-bottom-section">
-        <div class="sidebar-divider"></div>
-        <p class="mini-label" style="margin: 10px 8px 4px;">RETRIEVAL METHOD</p>
-        <select id="retrieval-method">
-          <option value="semantic">Semantic (Embeddings)</option>
-          <option value="tfidf">TF-IDF (Keyword)</option>
-        </select>
+      <!-- Uploaded Docs — toggle on top, list expands downward -->
+      <div class="docs-dropdown-container">
+        <button id="docs-toggle" class="docs-toggle-btn">
+          <span>UPLOADED DOCUMENTS</span>
+          <span id="docs-count" class="docs-count"></span>
+          <span class="docs-arrow">→</span>
+        </button>
+        <div id="uploaded-docs" class="docs-dropdown"></div>
       </div>
+
+      <div class="sidebar-divider"></div>
+
+      <p class="mini-label" style="margin: 10px 8px 4px;">RETRIEVAL METHOD</p>
+      <select id="retrieval-method">
+        <option value="semantic">Semantic (Embeddings)</option>
+        <option value="tfidf">TF-IDF (Keyword)</option>
+      </select>
+      <div style="height:10px"></div>
 
     </aside>
 
@@ -92,15 +83,22 @@
 
       <div id="messages"></div>
 
+      <!-- File staging area — appears above footer when a file is attached -->
+      <div id="file-staging-area" class="file-staging">
+        <div id="staged-files" class="staged-files-list"></div>
+        <button id="upload-staged-btn" class="upload-staged-btn">Upload ↑</button>
+      </div>
+
       <div class="chat-footer">
+        <!-- Hidden file input triggered by attach-btn -->
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.md" style="display:none" />
         <button class="icon-btn" id="attach-btn" title="Attach file">+</button>
-        <input
-          type="text"
+        <textarea
           id="user-input"
+          rows="1"
           placeholder="Ask a question or upload your notes..."
           autocomplete="off"
-        />
-        <button class="icon-btn" id="upload-inline-btn" title="Upload file">↑</button>
+        ></textarea>
         <button class="icon-btn icon-btn-send" id="send-btn" title="Send">→</button>
       </div>
     </main>
@@ -121,7 +119,7 @@
       <div id="evidence-list"></div>
     </div>
     <div class="rag-section metrics-section">
-      <h3 class="mini-label" style="margin-bottom: 8px;">Confidence Metrics</h3>
+      <h3 class="mini-label" style="margin-bottom:8px;">Confidence Metrics</h3>
       <div class="metric-row"><span>Overall</span><span id="metric-overall">N/A</span></div>
       <div class="metric-row"><span>Retrieval</span><span id="metric-retrieval">N/A</span></div>
       <div class="metric-row"><span>Response</span><span id="metric-response">N/A</span></div>
@@ -129,7 +127,6 @@
     </div>
   </aside>
 
-  <!-- Backwards-compat placeholder referenced by script.js -->
   <span id="participant-display" style="display:none"></span>
 
   <script src="script.js"></script>

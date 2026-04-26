@@ -380,7 +380,7 @@ body.chat-page {
 /* ── Three-Column Layout ──────────────────────────── */
 body.chat-page .app-container {
   display: grid;
-  grid-template-columns: 240px 1fr 380px;
+  grid-template-columns: 240px 1fr 540px;
   height: 100vh;
   overflow: hidden;
   gap: 0;
@@ -495,15 +495,7 @@ body.chat-page .app-container {
   flex-shrink: 0;
 }
 
-/* Upload section */
-.upload-section {
-  padding: 8px;
-  background: #f5f7fa;
-  border: 1px solid #d9d9de;
-  border-radius: 6px;
-  margin: 6px 8px;
-  flex-shrink: 0;
-}
+.sidebar-spacer { flex: 1; min-height: 0; }
 
 .mini-label {
   display: block;
@@ -515,69 +507,72 @@ body.chat-page .app-container {
   margin-bottom: 6px;
 }
 
-.file-input-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.choose-file-label {
-  padding: 4px 8px;
-  background: #f0f0f0;
-  border: 1px solid #d9d9de;
-  border-radius: 3px;
-  font-size: 9px;
-  cursor: pointer;
-  white-space: nowrap;
+/* Uploaded docs — upward-expanding dropdown */
+.docs-dropdown-container {
   flex-shrink: 0;
-  font-family: inherit;
-  color: #1a1f2e;
 }
-.choose-file-label input[type="file"] { display: none; }
 
-.file-name-text {
-  font-size: 9px;
-  color: #6b7385;
+/* In-flow: expands downward in DOM but pushes the sidebar-spacer (above) upward */
+.docs-dropdown {
+  background: #ffffff;
+  border: 1px solid #d9d9de;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
+  transition: max-height 0.25s ease;
 }
 
-.btn-upload {
-  display: block;
-  width: 100%;
-  padding: 5px 10px;
-  background: #1f994d;
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s;
-}
-.btn-upload:hover { background: #187a3e; }
-
-/* Uploaded docs */
-#uploaded-docs {
-  padding: 0 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.docs-dropdown.open {
+  max-height: 40vh;
   overflow-y: auto;
-  flex: 1;
-  min-height: 0;
 }
 
-#empty-msg {
+.docs-dropdown .doc-item {
+  margin: 4px 6px;
+  border-radius: 4px;
+}
+
+.docs-dropdown .docs-empty {
   font-style: italic;
   font-size: 11px;
   color: #9aa0b5;
-  padding: 8px 0;
+  padding: 10px 12px;
   text-align: center;
+}
+
+.docs-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  background: #f7f7fc;
+  border: none;
+  border-top: 1px solid #d9d9de;
+  border-bottom: 1px solid transparent;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #6b7385;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s;
+}
+.docs-toggle-btn:hover { background: #eef0f6; }
+.docs-toggle-btn.open { border-bottom-color: #d9d9de; }
+
+.docs-count {
+  font-size: 9px;
+  color: #9aa0b5;
+  font-weight: 400;
+}
+
+.docs-arrow {
+  margin-left: auto;
+  font-size: 10px;
 }
 
 .doc-item {
@@ -591,20 +586,11 @@ body.chat-page .app-container {
   font-size: 10px;
   color: #1a1f2e;
 }
-
 .doc-item span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
-}
-
-.sidebar-spacer { flex: 1; min-height: 0; }
-
-/* Retrieval – bottom of sidebar */
-.sidebar-bottom-section {
-  flex-shrink: 0;
-  padding-bottom: 10px;
 }
 
 #retrieval-method {
@@ -700,6 +686,7 @@ body.chat-page .app-container {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
+  pointer-events: none; /* nodes handle their own events individually */
 }
 
 .concept-node {
@@ -720,6 +707,7 @@ body.chat-page .app-container {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: box-shadow 0.15s;
+  pointer-events: auto; /* override parent's pointer-events: none */
 }
 .concept-node:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
 .concept-node:active { cursor: grabbing; }
@@ -947,12 +935,93 @@ body.chat-page .app-container {
 }
 .evidence-toggle:hover { color: #2758c7; }
 
+/* ── File Staging Area ────────────────────────────── */
+.file-staging {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #f5f7fa;
+  border-top: 1px solid #d9d9de;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.file-staging.visible {
+  display: flex;
+}
+
+.staged-files-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.staged-file-bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #e8f0ff;
+  border: 1px solid #3873f2;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #3873f2;
+  font-weight: 500;
+  max-width: 180px;
+}
+.staged-file-bubble span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staged-file-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3873f2;
+  color: #ffffff;
+  border: none;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  padding: 0;
+  pointer-events: auto;
+}
+.staged-file-remove.visible { opacity: 1; }
+
+.upload-staged-btn {
+  padding: 6px 14px;
+  background: #1f994d;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.upload-staged-btn:hover { background: #187a3e; }
+
 /* ── Chat Footer ──────────────────────────────────── */
 .chat-footer {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 6px;
-  padding: 14px;
+  padding: 12px 14px;
   border-top: 1px solid #d9d9de;
   background: #ffffff;
   flex-shrink: 0;
@@ -991,9 +1060,14 @@ body.chat-page .app-container {
   border: 1px solid #d9d9de;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 13px;
+  line-height: 1.5;
   color: #1a1f2e;
   outline: none;
+  resize: none;
+  overflow: hidden;
+  min-height: 36px;
+  max-height: 200px;
   transition: border-color 0.2s;
 }
 #user-input::placeholder { color: #b2b8c2; }
