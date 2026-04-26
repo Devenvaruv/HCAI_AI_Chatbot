@@ -3,87 +3,134 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Chatbot</title>
+  <title>Study Chat</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="chat-page">
   <div class="app-container">
-    <aside id="doc-panel">
-      <h2 class="panel-title">Document Management</h2>
 
-      <form id="upload-form">
-        <label class="section-label">Upload Document</label>
-        <div class="file-row">
-          <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.md" />
+    <!-- ── Left Sidebar ── -->
+    <aside id="sidebar">
+
+      <!-- Session Management -->
+      <div class="sidebar-section-header">SESSION MANAGEMENT</div>
+      <div class="session-actions">
+        <button id="new-session-btn" class="btn-primary-sm">+ New Session</button>
+        <button id="clear-session-btn" class="btn-outline-sm">↺ Clear Session</button>
+      </div>
+      <div id="session-list"></div>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Document Management -->
+      <div class="sidebar-section-header">DOCUMENT MANAGEMENT</div>
+      <div class="upload-section">
+        <p class="mini-label">UPLOAD DOCUMENT</p>
+        <div class="file-input-row">
+          <label class="choose-file-label">
+            Choose File
+            <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.md" />
+          </label>
+          <span id="file-name-display" class="file-name-text">No file chosen</span>
         </div>
-        <button type="button" id="upload-btn">Upload</button>
-      </form>
-
-      <div class="divider"></div>
-
-      <div class="docs-section">
-        <label class="section-label">Uploaded Documents</label>
-        <div id="uploaded-docs">
-          <p id="empty-msg">No documents uploaded yet</p>
-        </div>
+        <button type="button" id="upload-btn" class="btn-upload">Upload</button>
       </div>
 
-      <div class="divider"></div>
+      <p class="mini-label" style="margin: 10px 8px 4px;">UPLOADED DOCUMENTS</p>
+      <div id="uploaded-docs">
+        <p id="empty-msg">No documents uploaded yet</p>
+      </div>
 
-      <div class="retrieval-section">
-        <label class="section-label" for="retrieval-method">Retrieval Method</label>
+      <div class="sidebar-spacer"></div>
+
+      <!-- Retrieval Method pinned to bottom -->
+      <div class="sidebar-bottom-section">
+        <div class="sidebar-divider"></div>
+        <p class="mini-label" style="margin: 10px 8px 4px;">RETRIEVAL METHOD</p>
         <select id="retrieval-method">
           <option value="semantic">Semantic (Embeddings)</option>
           <option value="tfidf">TF-IDF (Keyword)</option>
         </select>
       </div>
+
     </aside>
 
+    <!-- ── Middle: Learning Workspace ── -->
+    <section id="learning-canvas">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <p class="panel-kicker">LEARNING WORKSPACE</p>
+          <h2 class="panel-heading">Concept Map</h2>
+        </div>
+        <div class="canvas-toolbar">
+          <button class="tool-btn" id="tool-add-node">+ Node</button>
+          <button class="tool-btn" id="tool-add-link">— Link</button>
+          <button class="tool-btn" id="tool-note">✎ Note</button>
+          <button class="tool-btn" id="tool-arrange">⊞ Arrange</button>
+          <button class="tool-btn" id="tool-delete">✕ Delete</button>
+        </div>
+      </div>
+      <div id="concept-map-area">
+        <svg id="concept-map-svg"></svg>
+        <div id="concept-map-nodes"></div>
+        <p id="canvas-hint" class="canvas-hint">Click '+ Node' to add concepts, or ask the AI to suggest related topics →</p>
+      </div>
+    </section>
+
+    <!-- ── Right: Chat Panel ── -->
     <main id="chat-container">
-      <div class="chat-header">
+      <div class="chat-panel-header">
         <div>
-          <p class="chat-kicker">Study Chat Workspace</p>
-          <h2 class="panel-title">AI Chat</h2>
+          <p class="panel-kicker">STUDY CHAT WORKSPACE</p>
+          <h2 class="panel-heading">AI Chat</h2>
+        </div>
+        <div class="chat-header-meta">
+          <button id="survey-btn" class="btn-outline-sm">Survey ↗</button>
         </div>
       </div>
 
       <div id="messages"></div>
 
       <div class="chat-footer">
+        <button class="icon-btn" id="attach-btn" title="Attach file">+</button>
         <input
           type="text"
           id="user-input"
-          placeholder="Begin chatting..."
+          placeholder="Ask a question or upload your notes..."
           autocomplete="off"
         />
-        <button id="send-btn">Send</button>
+        <button class="icon-btn" id="upload-inline-btn" title="Upload file">↑</button>
+        <button class="icon-btn icon-btn-send" id="send-btn" title="Send">→</button>
       </div>
     </main>
+
   </div>
 
+  <!-- RAG Evidence Slide-in Panel -->
   <aside id="rag-panel" aria-hidden="true">
     <div class="rag-header">
       <div>
-        <p class="chat-kicker">Linked Context</p>
-        <h2 class="panel-title">Retrieved Evidence</h2>
+        <p class="panel-kicker">Linked Context</p>
+        <h2 class="panel-heading">Retrieved Evidence</h2>
       </div>
-      <button type="button" id="close-rag-btn" aria-label="Close evidence panel">Close</button>
+      <button type="button" id="close-rag-btn">Close</button>
     </div>
-
     <div class="rag-section">
       <p id="evidence-empty" class="rag-empty">Select the evidence link under an assistant response.</p>
       <div id="evidence-list"></div>
     </div>
-
     <div class="rag-section metrics-section">
-      <h3 class="section-label">Confidence Metric</h3>
-      <div class="doc-item"><span>Overall</span><span id="metric-overall">N/A</span></div>
-      <div class="doc-item"><span>Retrieval</span><span id="metric-retrieval">N/A</span></div>
-      <div class="doc-item"><span>Response</span><span id="metric-response">N/A</span></div>
-      <div class="doc-item"><span>Method</span><span id="metric-method">N/A</span></div>
+      <h3 class="mini-label" style="margin-bottom: 8px;">Confidence Metrics</h3>
+      <div class="metric-row"><span>Overall</span><span id="metric-overall">N/A</span></div>
+      <div class="metric-row"><span>Retrieval</span><span id="metric-retrieval">N/A</span></div>
+      <div class="metric-row"><span>Response</span><span id="metric-response">N/A</span></div>
+      <div class="metric-row"><span>Method</span><span id="metric-method">N/A</span></div>
     </div>
   </aside>
+
+  <!-- Backwards-compat placeholder referenced by script.js -->
+  <span id="participant-display" style="display:none"></span>
 
   <script src="script.js"></script>
 </body>
