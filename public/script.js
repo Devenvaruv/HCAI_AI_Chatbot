@@ -367,28 +367,23 @@ const sessionMgr = {
    AI Message Helpers
 ───────────────────────────────────────────────────── */
 function generateFollowUps(text) {
-  // Extract capitalized multi-char words as potential key terms
-  const terms = [...new Set((text.match(/\b[A-Z][a-zA-Z]{3,}\b/g) || []))].slice(0, 3);
-  if (terms.length >= 3) {
+  const concept = extractConceptLabel(text);
+
+  if (!concept || concept === 'Concept') {
     return [
-      `What is ${terms[0]}?`,
-      `How does ${terms[1]} work in practice?`,
-      `How are ${terms[0]} and ${terms[2]} related?`,
-    ];
-  }
-  if (terms.length >= 1) {
-    return [
-      `What is ${terms[0]}?`,
-      'Can you give a concrete example?',
+      'Can you explain this in simpler terms?',
+      'Give me a concrete example.',
       'How does this apply in practice?',
     ];
   }
+
   return [
-    'Can you explain this in simpler terms?',
-    'Give me a concrete example.',
-    'How does this apply in practice?',
+    `Can you explain ${concept} in simpler terms?`,
+    `Can you give a concrete example of ${concept}?`,
+    `When would I use ${concept} in practice?`,
   ];
 }
+
 
 function generateSupplemental(text) {
   // Return the last complete sentence as a simplified takeaway
@@ -398,6 +393,59 @@ function generateSupplemental(text) {
   }
   return 'Try the depth buttons above to explore a quick answer, deep dive, or example.';
 }
+function extractConceptLabel(text) {
+  const cleaned = String(text || '')
+    .replace(/[’]/g, "'")
+    .replace(/\*\*/g, '')
+    .replace(/`/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleaned) return 'Concept';
+
+  const working = cleaned
+    .replace(/^(?:certainly|sure|absolutely|definitely|of course|yes)[!,.]?\s*/i, '')
+    .replace(/^(?:here's|here is)\s+(?:a|an)\s+(?:quick answer|brief explanation|simple explanation|detailed explanation|detailed deep dive|deep dive|overview|summary)\s+(?:into|of|on|about)\s+(?:how\s+)?/i, '')
+    .trim();
+
+  const acronymWithExpansion = working.match(/\b([A-Z]{2,}(?:\s*\([^)]+\))?)/);
+  if (acronymWithExpansion) return acronymWithExpansion[1].trim();
+
+  const firstClause = (working.match(/^[^:.!?]+/)?.[0] || working).trim();
+
+  const patterns = [
+    /^(.+?)\s+(?:is|are|was|were|refers to|means|describes|involves|happens when|occurs when|reduces|improves|helps|allows|enables|uses|transforms|captures|makes|provides|shows|works)\b/i,
+    /^(.+?)\s*:/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = firstClause.match(pattern);
+    if (!match) continue;
+
+    const candidate = match[1]
+      .replace(/^(?:a|an|the|how)\s+/i, '')
+      .replace(/^[^A-Za-z0-9(]+|[^A-Za-z0-9)]+$/g, '')
+      .trim();
+
+    if (candidate && !/^(?:it|this|that|they|these|those|here)$/i.test(candidate)) {
+      return candidate.split(/\s+/).slice(0, 6).join(' ');
+    }
+  }
+
+  const capitalizedPhrase = firstClause.match(
+    /\b(?:[A-Z][a-zA-Z0-9+-]*|[A-Z]{2,})(?:\s+(?:[A-Z][a-zA-Z0-9+-]*|[A-Z]{2,}|\([^)]+\))){0,5}\b/
+  );
+  if (capitalizedPhrase) return capitalizedPhrase[0].trim();
+
+  const keywords = firstClause
+    .replace(/[^a-zA-Z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(word => word && !/^(?:a|an|the|this|that|these|those|it|is|are|was|were|to|of|in|on|for|with|by|as|at|from|and|or|but|how|here|s|certainly|sure|absolutely|definitely|course|yes)$/i.test(word));
+
+  return keywords.slice(0, 4).join(' ') || 'Concept';
+}
+
+
 
 /* ─────────────────────────────────────────────────────
    Message Rendering
@@ -458,15 +506,17 @@ function _renderMessage(message, role, metadata = null) {
     const btn = document.createElement('button');
     btn.className = 'depth-btn';
     btn.textContent = label;
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const topic = message.split(' ').slice(0, 8).join(' ');
-      inputField.value = prefix + topic + '...';
-      autoGrow();
-      inputField.focus();
+      const prompt = prefix + topic + '...';
+
       depthRow.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       logEvent('click', 'DepthButton_' + label.replace(/\s/g, ''));
+
+      await sendMessage(prompt, label);
     });
+
     depthRow.appendChild(btn);
   });
 
@@ -474,7 +524,7 @@ function _renderMessage(message, role, metadata = null) {
   mapBtn.className = 'add-to-map-btn';
   mapBtn.textContent = '+ Add to Concept Map';
   mapBtn.addEventListener('click', () => {
-    const topic = message.split(/[.!?,]/)[0].substring(0, 40).trim();
+    const topic = extractConceptLabel(message);
     conceptMap.addFromChat(topic || 'Concept');
     logEvent('click', 'AddToConceptMap');
   });
@@ -569,13 +619,20 @@ function renderConfidenceMetrics(metrics) {
 /* ─────────────────────────────────────────────────────
    Send Message
 ───────────────────────────────────────────────────── */
-const sendMessage = async () => {
-  let userMessage = inputField.value.trim();
+const sendMessage = async (messageOverride = null, displayMessageOverride = null) => {
+  const userMessage = (messageOverride ?? inputField.value).trim();
+  const displayMessage = (displayMessageOverride ?? userMessage).trim();
+
   if (!userMessage) { alert('You submitted an empty message'); return; }
-  createChatMessage(userMessage, 'user');
-  inputField.value = '';
-  autoGrow();
-  sessionMgr._persist(); // persist after each user message
+
+  createChatMessage(displayMessage, 'user');
+
+  if (messageOverride === null) {
+    inputField.value = '';
+    autoGrow();
+  }
+
+  sessionMgr._persist();
 
   try {
     const recentHistory = conversationHistory.slice(-MAX_INTERACTIONS * 2);
@@ -588,15 +645,16 @@ const sendMessage = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+
     if (resp.ok) {
       const data = await resp.json();
       createChatMessage(data.botResponse, 'assistant', {
         retrievedDocuments: data.retrievedDocuments,
-        confidenceMetrics:  data.confidenceMetrics,
+        confidenceMetrics: data.confidenceMetrics,
         suggestedFollowUps: data.suggestedFollowUps,
         supplementalResponse: data.supplementalResponse,
       });
-      conversationHistory.push({ role: 'user',      content: userMessage });
+      conversationHistory.push({ role: 'user', content: userMessage });
       conversationHistory.push({ role: 'assistant', content: data.botResponse });
       sessionMgr._persist();
     } else {
@@ -606,6 +664,8 @@ const sendMessage = async () => {
     console.error('Fetch response from server: ', err);
   }
 };
+
+
 
 /* ─────────────────────────────────────────────────────
    Chat History (load on page open)

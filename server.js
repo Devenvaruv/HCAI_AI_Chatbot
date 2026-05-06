@@ -88,7 +88,7 @@ app.post('/chat', async (req, res) => {
             .join('\n\n')
         : 'No supporting documents retrieved.';
 
-    try {
+        try {
         const messages = [
             {
                 role: 'system',
@@ -112,12 +112,58 @@ app.post('/chat', async (req, res) => {
         });
 
         const botResponse = response.choices[0].message.content.trim();
-        const confidenceMetrics = confidenceCalculator.calculate({ retrievedDocs: retrieved, retrievalMethod: retrievalMethod });
+
+        let supplementalResponse = '';
+        try {
+            const supplementalMessages = [
+                {
+                    role: 'system',
+                    content: `You are a study support assistant.
+                    Generate a short "additional learning support" note for a student.
+
+                    Rules:
+                    - Use the original user question, the retrieved evidence, and the main answer.
+                    - Do not contradict the main answer.
+                    - Keep it concise and helpful.
+                    - Focus on one of these: a simpler explanation, a key takeaway, or a practical intuition.
+                    - Do not repeat the full answer.
+                    - Do not mention that you are using evidence or a previous answer.
+                    - Output only the support text.`
+                },
+                {
+                    role: 'user',
+                    content: `User question:
+                ${userInput}
+
+                Main answer:
+                ${botResponse}
+
+                Retrieved evidence:
+                ${evidenceText}`
+                }
+            ];
+
+            const supplementalResult = await openai.chat.completions.create({
+                model: 'gpt-4.1-mini',
+                messages: supplementalMessages,
+                max_tokens: 80
+            });
+
+            supplementalResponse = supplementalResult.choices[0].message.content.trim();
+        } catch (supplementalError) {
+            console.error('Error generating supplemental response:', supplementalError.message);
+        }
+
+        const confidenceMetrics = confidenceCalculator.calculate({
+            retrievedDocs: retrieved,
+            retrievalMethod: retrievalMethod
+        });
 
         const interaction = new Interaction({
             participantID: participantID,
             userInput: userInput,
             botResponse: botResponse,
+            supplementalResponse: supplementalResponse,
             retrievalMethod: retrievalMethod,
             retrievedDocuments: retrievedDocuments,
             confidenceMetrics: confidenceMetrics
@@ -125,12 +171,16 @@ app.post('/chat', async (req, res) => {
         await interaction.save();
 
         res.json({
-            botResponse, retrievedDocuments, confidenceMetrics
+            botResponse,
+            supplementalResponse,
+            retrievedDocuments,
+            confidenceMetrics
         });
     } catch (error) {
         console.error('Error interacting with OpenAI API:', error.message);
         res.status(500).send('Server Error');
     }
+
 });
 
 app.post('/log-event', async (req, res) => {
