@@ -2,11 +2,11 @@ const params = new URLSearchParams(window.location.search);
 const participantID = params.get('participantID') || localStorage.getItem('participantID');
 const systemID = params.get('systemID');
 
-document.getElementById('prototype-btn').addEventListener('click', () => {
+document.getElementById('prototype-btn')?.addEventListener('click', () => {
   window.location.href = `/chat.html?participantID=${participantID}&systemID=${systemID}`;
 });
 
-document.getElementById('task-btn').addEventListener('click', () => {
+document.getElementById('task-btn')?.addEventListener('click', () => {
   window.open(`/task.html`, '_blank');
 });
 
@@ -447,6 +447,8 @@ function extractConceptLabel(text) {
    createChatMessage wraps it and also records to sessionMessages.
 ───────────────────────────────────────────────────── */
 function _renderMessage(message, role, metadata = null) {
+  if (!messagesContainer) return;
+
   const elem = document.createElement('div');
   elem.classList.add('message', role);
 
@@ -554,9 +556,9 @@ function redirectToPostSurvey() {
     });
 }
 
-document.getElementById('survey-btn').addEventListener('click', redirectToSurvey);
+document.getElementById('survey-btn')?.addEventListener('click', redirectToSurvey);
 
-document.getElementById('post-survey-btn').addEventListener('click', redirectToPostSurvey);
+document.getElementById('post-survey-btn')?.addEventListener('click', redirectToPostSurvey);
 
 function renderConfidenceMetrics(metrics) {
   metricOverall.textContent   = metrics?.overallConfidence   ?? 'N/A';
@@ -801,8 +803,8 @@ function logEvent(type, element) {
    Input listeners
 ───────────────────────────────────────────────────── */
 closeRagBtn?.addEventListener('click', () => {
-  ragPanel.classList.remove('is-open');
-  ragPanel.setAttribute('aria-hidden', 'true');
+  ragPanel?.classList.remove('is-open');
+  ragPanel?.setAttribute('aria-hidden', 'true');
 });
 
 sendBtn?.addEventListener('click', () => { logEvent('click', 'SendButton'); sendMessage(); });
