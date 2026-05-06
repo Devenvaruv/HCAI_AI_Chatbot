@@ -520,6 +520,11 @@ function _renderMessage(message, role, metadata = null) {
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
+const createChatMessage = (message, role, metadata = null) => {
+  _renderMessage(message, role, metadata);
+  sessionMessages.push({ role, content: message, metadata });
+};
+
 function redirectToSurvey() {
   fetch('/redirect-to-survey', {
     method: 'POST',
