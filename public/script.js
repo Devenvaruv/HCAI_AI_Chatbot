@@ -513,6 +513,10 @@ function _renderMessage(message, role, metadata = null) {
     depthRow.appendChild(btn);
     
   });
+  elem.appendChild(depthRow);
+  messagesContainer.appendChild(elem);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
 function redirectToSurvey() {
   fetch('/redirect-to-survey', {
