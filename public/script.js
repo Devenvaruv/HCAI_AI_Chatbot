@@ -582,7 +582,7 @@ function redirectToPostSurvey() {
 
 document.getElementById('survey-btn')?.addEventListener('click', redirectToSurvey);
 
-document.getElementById('pre-prototype-survey')?.addEventListener('click', redirectToPrePrototypeSurvey)
+document.getElementById('pre-prototype-survey-btn')?.addEventListener('click', redirectToPrePrototypeSurvey)
 
 document.getElementById('post-survey-btn')?.addEventListener('click', redirectToPostSurvey);
 
