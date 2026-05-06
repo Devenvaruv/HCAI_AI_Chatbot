@@ -240,6 +240,16 @@ app.post('/redirect-to-survey', (req, res) => {
   res.send(surveyUrl);
 });
 
+app.post('/redirect-to-pre-prototype-survey', (req, res) => {
+  const { participantID } = req.body;
+
+  const qualtricsBaseUrl = 'https://usfca.qualtrics.com/jfe/form/SV_38BIx3pioM3NPFQ';
+
+  const surveyUrl = `${qualtricsBaseUrl}?participantID=${encodeURIComponent(participantID)}`;
+
+  res.send(surveyUrl);
+});
+
 app.post('/redirect-to-post-survey', (req, res) => {
   const { participantID } = req.body;
 
