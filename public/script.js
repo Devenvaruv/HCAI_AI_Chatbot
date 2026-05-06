@@ -7,7 +7,7 @@ document.getElementById('prototype-btn').addEventListener('click', () => {
 });
 
 document.getElementById('task-btn').addEventListener('click', () => {
-  alert('Add your task instructions here or link this button to a task page.');
+  window.open(`/task.html`, '_blank');
 });
 
 if (!participantID) {
@@ -106,7 +106,7 @@ function renderRetrievedEvidence(docs) {
     });
 }
 
-function redirectToQualtrics() {
+function redirectToSurvey() {
   fetch('/redirect-to-survey', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -124,7 +124,27 @@ function redirectToQualtrics() {
     });
 }
 
-document.getElementById('survey-btn').addEventListener('click', redirectToQualtrics);
+function redirectToPostSurvey() {
+  fetch('/redirect-to-post-survey', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantID })
+  })
+    .then(response => response.text())
+    .then(url => {
+      logEvent('redirect', 'Qualtrics Survey');
+      //window.location.href = url;
+      window.open(url, '_blank');
+    })
+    .catch(error => {
+      console.error('Error redirecting to survey:', error);
+      alert('There was an error redirecting to the survey. Please try again.');
+    });
+}
+
+document.getElementById('survey-btn').addEventListener('click', redirectToSurvey);
+
+document.getElementById('post-survey-btn').addEventListener('click', redirectToPostSurvey);
 
 const participantDisplay = document.getElementById('participant-display');
 participantDisplay.textContent = participantID;
