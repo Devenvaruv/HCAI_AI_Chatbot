@@ -510,6 +510,9 @@ function _renderMessage(message, role, metadata = null) {
 
       await sendMessage(prompt, label);
     });
+    depthRow.appendChild(btn);
+    
+  });
 
 function redirectToSurvey() {
   fetch('/redirect-to-survey', {
@@ -775,20 +778,6 @@ document.getElementById('docs-toggle')?.addEventListener('click', () => {
   if (arrow) arrow.textContent = isOpen ? '↓' : '→';
 });
 
-/* ─────────────────────────────────────────────────────
-   Survey / Participant display
-───────────────────────────────────────────────────── */
-function redirectToQualtrics() {
-  fetch('/redirect-to-survey', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ participantID }),
-  })
-    .then(r => r.text())
-    .then(url => { logEvent('redirect', 'Qualtrics Survey'); window.open(url, '_blank'); })
-    .catch(() => alert('There was an error redirecting to the survey. Please try again.'));
-}
-document.getElementById('survey-btn')?.addEventListener('click', redirectToQualtrics);
 
 const participantDisplay = document.getElementById('participant-display');
 if (participantDisplay) participantDisplay.textContent = participantID;
