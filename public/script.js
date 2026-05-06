@@ -527,12 +527,6 @@ function redirectToSurvey() {
       console.error('Error redirecting to survey:', error);
       alert('There was an error redirecting to the survey. Please try again.');
     });
-    stepsDiv.appendChild(btn);
-  });
-  elem.appendChild(stepsDiv);
-
-  messagesContainer.appendChild(elem);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 function redirectToPostSurvey() {
