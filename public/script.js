@@ -2,19 +2,13 @@ const params = new URLSearchParams(window.location.search);
 const participantID = params.get('participantID') || localStorage.getItem('participantID');
 const systemID = params.get('systemID');
 
-// Null guards for elements only present on other pages
-const prototypeBtn = document.getElementById('prototype-btn');
-if (prototypeBtn) {
-  prototypeBtn.addEventListener('click', () => {
-    window.location.href = `/chat.html?participantID=${participantID}&systemID=${systemID}`;
-  });
-}
-const taskBtn = document.getElementById('task-btn');
-if (taskBtn) {
-  taskBtn.addEventListener('click', () => {
-    alert('Add your task instructions here or link this button to a task page.');
-  });
-}
+document.getElementById('prototype-btn').addEventListener('click', () => {
+  window.location.href = `/chat.html?participantID=${participantID}&systemID=${systemID}`;
+});
+
+document.getElementById('task-btn').addEventListener('click', () => {
+  window.open(`/task.html`, '_blank');
+});
 
 if (!participantID) {
   alert('Please enter your participant ID first.');
@@ -517,59 +511,21 @@ function _renderMessage(message, role, metadata = null) {
       await sendMessage(prompt, label);
     });
 
-    depthRow.appendChild(btn);
-  });
-
-  const mapBtn = document.createElement('button');
-  mapBtn.className = 'add-to-map-btn';
-  mapBtn.textContent = '+ Add to Concept Map';
-  mapBtn.addEventListener('click', () => {
-    const topic = extractConceptLabel(message);
-    conceptMap.addFromChat(topic || 'Concept');
-    logEvent('click', 'AddToConceptMap');
-  });
-  depthRow.appendChild(mapBtn);
-  elem.appendChild(depthRow);
-
-  // ── Evidence link (opens RAG panel) ──
-  if (hasDocs || metadata?.confidenceMetrics) {
-    const actions = document.createElement('div');
-    actions.className = 'message-actions';
-    const evidenceBtn = document.createElement('button');
-    evidenceBtn.type = 'button';
-    evidenceBtn.className = 'evidence-toggle';
-    evidenceBtn.textContent = 'View evidence';
-    evidenceBtn.addEventListener('click', () => {
-      renderRetrievedEvidence(metadata?.retrievedDocuments || []);
-      renderConfidenceMetrics(metadata?.confidenceMetrics || null);
-      ragPanel.classList.add('is-open');
-      ragPanel.setAttribute('aria-hidden', 'false');
-    });
-    actions.appendChild(evidenceBtn);
-    elem.appendChild(actions);
-  }
-
-  // ── Suggested next steps (always 3) ──
-  const followUps = metadata?.suggestedFollowUps?.length
-    ? metadata.suggestedFollowUps
-    : generateFollowUps(message);
-
-  const stepsDiv = document.createElement('div');
-  stepsDiv.className = 'suggested-steps';
-  const stepsLabel = document.createElement('span');
-  stepsLabel.className = 'suggested-label';
-  stepsLabel.textContent = 'Suggested Next Steps';
-  stepsDiv.appendChild(stepsLabel);
-
-  followUps.slice(0, 3).forEach(q => {
-    const btn = document.createElement('button');
-    btn.className = 'suggested-item';
-    btn.textContent = '→  ' + q;
-    btn.addEventListener('click', () => {
-      inputField.value = q;
-      autoGrow();
-      inputField.focus();
-      logEvent('click', 'SuggestedFollowUp');
+function redirectToSurvey() {
+  fetch('/redirect-to-survey', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantID })
+  })
+    .then(response => response.text())
+    .then(url => {
+      logEvent('redirect', 'Qualtrics Survey');
+      //window.location.href = url;
+      window.open(url, '_blank');
+    })
+    .catch(error => {
+      console.error('Error redirecting to survey:', error);
+      alert('There was an error redirecting to the survey. Please try again.');
     });
     stepsDiv.appendChild(btn);
   });
@@ -579,35 +535,27 @@ function _renderMessage(message, role, metadata = null) {
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-const createChatMessage = (message, role, metadata = null) => {
-  _renderMessage(message, role, metadata);
-  sessionMessages.push({ role, content: message, metadata });
-};
-
-/* ─────────────────────────────────────────────────────
-   Evidence / Metrics rendering
-───────────────────────────────────────────────────── */
-function renderRetrievedEvidence(docs) {
-  evidenceList.innerHTML = '';
-  evidenceEmpty.style.display = docs.length > 0 ? 'none' : 'block';
-  if (docs.length === 0) {
-    evidenceEmpty.textContent = 'No evidence was retrieved for this response.';
-    return;
-  }
-  docs.forEach((doc) => {
-    const card = document.createElement('article');
-    card.className = 'evidence-card';
-    const title = document.createElement('div');
-    title.className = 'evidence-title';
-    title.textContent = `${doc.docName} | Chunk ${doc.chunkIndex} | Score: ${doc.relevanceScore}`;
-    const text = document.createElement('p');
-    text.className = 'evidence-text';
-    text.textContent = doc.chunkText;
-    card.appendChild(title);
-    card.appendChild(text);
-    evidenceList.appendChild(card);
-  });
+function redirectToPostSurvey() {
+  fetch('/redirect-to-post-survey', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantID })
+  })
+    .then(response => response.text())
+    .then(url => {
+      logEvent('redirect', 'Qualtrics Survey');
+      //window.location.href = url;
+      window.open(url, '_blank');
+    })
+    .catch(error => {
+      console.error('Error redirecting to survey:', error);
+      alert('There was an error redirecting to the survey. Please try again.');
+    });
 }
+
+document.getElementById('survey-btn').addEventListener('click', redirectToSurvey);
+
+document.getElementById('post-survey-btn').addEventListener('click', redirectToPostSurvey);
 
 function renderConfidenceMetrics(metrics) {
   metricOverall.textContent   = metrics?.overallConfidence   ?? 'N/A';
