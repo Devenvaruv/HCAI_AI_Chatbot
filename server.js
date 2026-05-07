@@ -250,10 +250,20 @@ app.post('/redirect-to-pre-prototype-survey', (req, res) => {
   res.send(surveyUrl);
 });
 
+app.post('/redirect-to-pre-prototype-survey-two', (req, res) => {
+  const { participantID } = req.body;
+
+  const qualtricsBaseUrl = 'https://usfca.qualtrics.com/jfe/form/SV_dbtH8bIukZeOxGS';
+
+  const surveyUrl = `${qualtricsBaseUrl}?participantID=${encodeURIComponent(participantID)}`;
+
+  res.send(surveyUrl);
+});
+
 app.post('/redirect-to-post-survey', (req, res) => {
   const { participantID } = req.body;
 
-  const qualtricsBaseUrl = 'https://usfca.qualtrics.com/jfe/form/SV_9YmD3CQUgKK1pJ';
+  const qualtricsBaseUrl = 'https://usfca.qualtrics.com/jfe/form/SV_0VuWdlemNtUY5lI';
 
   const surveyUrl = `${qualtricsBaseUrl}?participantID=${encodeURIComponent(participantID)}`;
 

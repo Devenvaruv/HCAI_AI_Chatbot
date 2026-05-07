@@ -562,6 +562,24 @@ function redirectToPrePrototypeSurvey() {
     });
 }
 
+function redirectToPrePrototypeSurveyTwo() {
+  fetch('/redirect-to-pre-prototype-survey-two', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantID })
+  })
+    .then(response => response.text())
+    .then(url => {
+      logEvent('redirect', 'Qualtrics Survey');
+      //window.location.href = url;
+      window.open(url, '_blank');
+    })
+    .catch(error => {
+      console.error('Error redirecting to survey:', error);
+      alert('There was an error redirecting to the survey. Please try again.');
+    });
+}
+
 function redirectToPostSurvey() {
   fetch('/redirect-to-post-survey', {
     method: 'POST',
@@ -583,6 +601,8 @@ function redirectToPostSurvey() {
 document.getElementById('survey-btn')?.addEventListener('click', redirectToSurvey);
 
 document.getElementById('pre-prototype-survey-btn')?.addEventListener('click', redirectToPrePrototypeSurvey)
+
+document.getElementById('pre-prototype-survey-btn-2')?.addEventListener('click', redirectToPrePrototypeSurveyTwo)
 
 document.getElementById('post-survey-btn')?.addEventListener('click', redirectToPostSurvey);
 
